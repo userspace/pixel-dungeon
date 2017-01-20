@@ -39,6 +39,12 @@ import com.parse.Parse;
 import com.parse.http.ParseHttpRequest;
 import com.parse.http.ParseHttpResponse;
 import com.parse.http.ParseNetworkInterceptor;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -176,7 +182,7 @@ public class PixelDungeon extends Game {
 
                     ParseHttpResponse response = chain.proceed(newRequest);
 					Log.e(TAG,"");
-                    Log.e(TAG, "Response From ParseServer:" + response.getStatusCode() );
+                    Log.e(TAG, "Response From ParseServer: " + response.getStatusCode() + " " + newRequest.getMethod().toString() + " " + newRequest.getUrl());
                     for(Map.Entry<String,String> entry :  response.getAllHeaders().entrySet()) {
                         Log.e(TAG, entry.getKey() + ": " + entry.getValue());
                     }
@@ -191,7 +197,7 @@ public class PixelDungeon extends Game {
                         .build();
                 }
             })
-            .server("http://user.space/main")
+            .server("https://gateway.user.space/main")
             .build()
         );
     }
@@ -221,16 +227,42 @@ public class PixelDungeon extends Game {
 
     }
 
+
 	private LockCallback callback = new AuthenticationCallback() {
         @Override
         public void onAuthentication(final Credentials credentials) {
 			token = credentials.getIdToken();
 
+			Request req = new Request.Builder()
+				.url("https://gateway.user.space/native/android")
+                .post(RequestBody.create(MediaType.parse("application/json"),""))
+				.addHeader("Authorization", "Bearer " + PixelDungeon.instance.token)
+				.build();
+
+			new OkHttpClient()
+				.newCall(req)
+				.enqueue(new Callback() {
+					@Override
+					public void onFailure(Request request, IOException e) {
+						Log.d(TAG,"newToken ERROR " + e.getMessage());
+					}
+
+					@Override
+					public void onResponse(Response response) throws IOException {
+						PixelDungeon.instance.token = response.body().string();
+                        Log.d(TAG,"newToken OK " + PixelDungeon.instance.token);
+                        PixelDungeon.instance.token = PixelDungeon.instance.token.substring(1, PixelDungeon.instance.token.length()-1);
+						Log.d(TAG,"newToken OK " + PixelDungeon.instance.token);
+
+                        SharedPreferences.Editor editor = instance.getPreferences(0).edit();
+                        editor.putString("last_token", PixelDungeon.instance.token);
+                        editor.commit();
+					}
+				});
+
+
             initialize_keen();
 
-            SharedPreferences.Editor editor = instance.getPreferences(0).edit();
-            editor.putString("last_token", token);
-            editor.commit();
             Log.d(TAG,"onAuth " + credentials.getAccessToken() + " d " + credentials.getIdToken() );
 		}
 

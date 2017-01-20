@@ -177,7 +177,7 @@ public class Bundle {
 		
 		try {
 			List<ParseObject> array = data.getList( key );
-			for (int i=0; i < array.size(); i++) {
+			if (array != null) for (int i=0; i < array.size(); i++) {
 				list.add( new Bundle( array.get( i ).fetchIfNeeded() ).get() );
 			}
 		} catch (Exception e) {
