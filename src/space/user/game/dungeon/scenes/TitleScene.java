@@ -137,7 +137,7 @@ public class TitleScene extends PixelScene {
                 event.put("from","titlescene");
                 KeenClient.client().addEventAsync("direction", event);
                 PixelDungeon.instance.startActivity(
-                    new Intent(Intent.ACTION_VIEW, Uri.parse("https://my.user.space/login?token=" + PixelDungeon.instance.token))
+                    new Intent(Intent.ACTION_VIEW, Uri.parse("https://gateway.user.space/login?token=" + PixelDungeon.instance.token))
                 );
             }
 		};

@@ -22,6 +22,8 @@ import android.os.Handler;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.SaveCallback;
+
 import space.user.game.dungeon.PixelDungeon;
 
 import org.json.JSONArray;
@@ -357,8 +359,12 @@ public class Bundle {
 
 	public boolean write( ) {
 //        try {
-        data.saveEventually();
-        dirty = false;
+        data.saveEventually(new SaveCallback() {
+			@Override
+			public void done(ParseException e) {
+				dirty = false;
+			}
+		});
 //            data.saveEventually();
 //        ParseObject.saveAllInBackground()
         return true;
